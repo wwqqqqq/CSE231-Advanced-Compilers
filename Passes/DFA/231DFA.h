@@ -24,6 +24,7 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <set>
 
 namespace llvm {
 
@@ -79,8 +80,8 @@ class DataFlowAnalysis {
 		// Edge to information map
 		std::map<Edge, Info *> EdgeToInfo;
 		// The bottom of the lattice
-    Info Bottom;
-    // The initial state of the analysis
+		Info Bottom;
+		// The initial state of the analysis
 		Info InitialState;
 		// EntryInstr points to the first instruction to be processed in the analysis
 		Instruction * EntryInstr;
@@ -172,6 +173,7 @@ class DataFlowAnalysis {
 				Instruction * firstInstr = &(block->front());
 
 				// Initialize incoming edges to the basic block
+				// pred -> predecessors
 				for (auto pi = pred_begin(block), pe = pred_end(block); pi != pe; ++pi) {
 					BasicBlock * prev = *pi;
 					Instruction * src = (Instruction *)prev->getTerminator();
@@ -181,6 +183,8 @@ class DataFlowAnalysis {
 
 				// If there is at least one phi node, add an edge from the first phi node
 				// to the first non-phi node instruction in the basic block.
+				// Φ (Phi) function will generate a new definition of y called y3 by "choosing" either y1 or y2, depending on the control flow in the past.
+				// Why?
 				if (isa<PHINode>(firstInstr)) {
 					addEdge(firstInstr, block->getFirstNonPHI(), &Bottom);
 				}
@@ -189,7 +193,7 @@ class DataFlowAnalysis {
 				for (auto ii = block->begin(), ie = block->end(); ii != ie; ++ii) {
 					Instruction * instr = &*ii;
 					if (isa<PHINode>(instr))
-						continue;
+						continue; // Why?
 					if (instr == (Instruction *)block->getTerminator())
 						break;
 					Instruction * next = instr->getNextNode();
@@ -224,14 +228,14 @@ class DataFlowAnalysis {
      * The flow function.
      *   Instruction I: the IR instruction to be processed.
      *   std::vector<unsigned> & IncomingEdges: the vector of the indices of the source instructions of the incoming edges.
-     *   std::vector<unsigned> & IncomingEdges: the vector of indices of the source instructions of the outgoing edges.
+     *   std::vector<unsigned> & OutgoingEdges: the vector of indices of the source instructions of the outgoing edges.
      *   std::vector<Info *> & Infos: the vector of the newly computed information for each outgoing eages.
      *
      * Direction:
      * 	 Implement this function in subclasses.
      */
     virtual void flowfunction(Instruction * I,
-    													std::vector<unsigned> & IncomingEdges,
+    														std::vector<unsigned> & IncomingEdges,
 															std::vector<unsigned> & OutgoingEdges,
 															std::vector<Info *> & Infos) = 0;
 
@@ -255,6 +259,14 @@ class DataFlowAnalysis {
 			}
     }
 
+	Info* edge2info(Edge edge) {
+		return EdgeToInfo[edge];
+	}
+
+	unsigned instr2index(Instruction* instr) {
+		return InstrToIndex[instr];
+	}
+
     /*
      * This function implements the work list algorithm in the following steps:
      * (1) Initialize info of each edge to bottom
@@ -277,8 +289,42 @@ class DataFlowAnalysis {
     	assert(EntryInstr != nullptr && "Entry instruction is null.");
 
     	// (2) Initialize the work list
+		// for (auto it : IndexToInstr) {
+		// 	// TODO: should we use all nodes?
+		// 	// consider PHI node, nullptr
+		// 	worklist.push_back(it->first);
+		// }
+		std::set<unsigned> nodesWithEdge;
+		for (auto const &it : EdgeToInfo) {
+			if(nodesWithEdge.count(it.first.first) == 0) {
+				worklist.push_back(it.first.first);
+				nodesWithEdge.insert(it.first.first);
+			}
+			if(nodesWithEdge.count(it.first.second) == 0) {
+				worklist.push_back(it.first.second);
+				nodesWithEdge.insert(it.first.second);
+			}
+		}
 
     	// (3) Compute until the work list is empty
+		while (	!worklist.empty() ) {
+			unsigned node = worklist.front();
+			worklist.pop_front();
+			std::vector<unsigned> incoming_nodes;
+			std::vector<unsigned> outgoing_nodes;
+			std::vector<Info*> infos;
+			Instruction* instr = IndexToInstr[node];
+			getIncomingEdges(node, &incoming_nodes);
+			getOutgoingEdges(node, &outgoing_nodes);
+			flowfunction(instr, incoming_nodes, outgoing_nodes, infos);
+			for (size_t i = 0; i < outgoing_nodes.size(); i++) {
+				Edge edge = std::make_pair(node, outgoing_nodes[i]);
+				if(!Info::equals(infos[i], EdgeToInfo[edge])) {
+					EdgeToInfo[edge] = infos[i];
+					worklist.push_back(outgoing_nodes[i]); 
+				}
+			}
+		}
     }
 };
 
