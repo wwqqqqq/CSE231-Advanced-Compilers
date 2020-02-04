@@ -260,10 +260,18 @@ class DataFlowAnalysis {
     }
 
 	Info* edge2info(Edge edge) {
+		if(EdgeToInfo.count(edge) == 0) {
+			errs() << "edge2info: edge does not exist\n";
+			return nullptr;
+		}
 		return EdgeToInfo[edge];
 	}
 
 	unsigned instr2index(Instruction* instr) {
+		if(InstrToIndex.count(instr) == 0) {
+			errs() << "instr2index: instruction does not exist\n";
+			return 0;
+		}
 		return InstrToIndex[instr];
 	}
 
@@ -296,11 +304,11 @@ class DataFlowAnalysis {
 		// }
 		std::set<unsigned> nodesWithEdge;
 		for (auto const &it : EdgeToInfo) {
-			if(nodesWithEdge.count(it.first.first) == 0) {
+			if(it.first.first != 0 && nodesWithEdge.count(it.first.first) == 0) {
 				worklist.push_back(it.first.first);
 				nodesWithEdge.insert(it.first.first);
 			}
-			if(nodesWithEdge.count(it.first.second) == 0) {
+			if(it.first.second != 0 && nodesWithEdge.count(it.first.second) == 0) {
 				worklist.push_back(it.first.second);
 				nodesWithEdge.insert(it.first.second);
 			}

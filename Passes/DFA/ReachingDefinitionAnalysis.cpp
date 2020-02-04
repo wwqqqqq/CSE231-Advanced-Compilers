@@ -40,9 +40,9 @@ class ReachingInfo : public Info {
      */
     void print() {
         for(auto it : info) {
-            std::cout << (it) << "|";
+            errs() << (it) << "|";
         }
-        std::cout << std::endl;
+        errs() << "\n";
     }
 
     std::set<unsigned> getInfo() {
