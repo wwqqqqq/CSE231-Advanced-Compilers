@@ -101,16 +101,22 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
     private:
         typedef std::pair<unsigned, unsigned> Edge;
         std::set<string> opname2 = {"br", "switch", "store"};
+        std::set<string> opname1 = {"alloca", "load", "getelementptr", "icmp", "fcmp", "select"};
 
         int getCategory(Instruction* I) {
             if(isa<PHINode>(I)) {
                 return 3;
             }
+            if(I->isBinaryOp())
+                return 1;
             string op = I->getOpcodeName();
+            if(opname1.count(op) > 0) {
+                return 1;
+            }
             if(opname2.count(op) > 0) {
                 return 2;
             }
-            return 1;
+            return 2;
         }
 
         set<unsigned> usedVariables(Instruction* I) {
@@ -124,9 +130,9 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
             return result;
         }
 
-        unsigned definedVariable(Instruction* I) {
-            return instr2index(I);
-        }
+        // unsigned definedVariable(Instruction* I) {
+        //     return instr2index(I);
+        // }
 
         LivenessInfo* getOutInfoPHI(Instruction* I, LivenessInfo* in, LivenessInfo* out, BasicBlock* outBB) {
             for(Use &U:I->operands()) {
@@ -159,13 +165,13 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
                 LivenessInfo::join(info, in, info);
             }
 
-            errs() << currentIndex << ": ";
-            errs() << (*I) << "\n";
+            // errs() << currentIndex << ": ";
+            // errs() << (*I) << "\n";
             
             switch(getCategory(I)) {
                 case 1: { // First category: IR instructions that return a value (defines a variable) 
                     LivenessInfo::join(info, usedVariables(I), info);
-                    LivenessInfo::remove(info, definedVariable(I), info);
+                    LivenessInfo::remove(info, currentIndex, info);
                     for(size_t i = 0; i < OutgoingEdges.size(); i++) {
                         Infos.push_back(info);
                     }
