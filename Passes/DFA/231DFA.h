@@ -210,7 +210,7 @@ class DataFlowAnalysis {
 
 			}
 
-			EntryInstr = (Instruction *) &((func->end()).back());
+			EntryInstr = (Instruction *) &((func->front()).front());
 			addEdge(nullptr, EntryInstr, &InitialState);
 
 			return;
@@ -266,7 +266,7 @@ class DataFlowAnalysis {
 
 			}
 
-			EntryInstr = (Instruction *) &((func->front()).front()); // TODO
+			EntryInstr = (func->back()).getTerminator();
 			addEdge(nullptr, EntryInstr, &InitialState);
 
 			return;
@@ -383,6 +383,7 @@ class DataFlowAnalysis {
 			flowfunction(instr, incoming_nodes, outgoing_nodes, infos);
 			for (size_t i = 0; i < outgoing_nodes.size(); i++) {
 				Edge edge = std::make_pair(node, outgoing_nodes[i]);
+				Info::join(infos[i], EdgeToInfo[edge], infos[i]);
 				if(!Info::equals(infos[i], EdgeToInfo[edge])) {
 					EdgeToInfo[edge] = infos[i];
 					worklist.push_back(outgoing_nodes[i]); 

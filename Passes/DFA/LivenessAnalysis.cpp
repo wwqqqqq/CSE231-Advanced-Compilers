@@ -68,7 +68,7 @@ class LivenessInfo : public Info {
         return result;
     }
 
-    static LivenessInfo* join(LivenessInfo * info1, set<unsigned> &info2, LivenessInfo * result) {
+    static LivenessInfo* join(LivenessInfo * info1, set<unsigned> info2, LivenessInfo * result) {
         std::set<unsigned> infoSet1 = info1->getInfo();
         infoSet1.insert(info2.begin(), info2.end());
         result->setInfo(infoSet1);
@@ -89,7 +89,7 @@ class LivenessInfo : public Info {
         return result;
     }
 
-    static LivenessInfo* remove(LivenessInfo * info1, set<unsigned> &info2, LivenessInfo * result) {
+    static LivenessInfo* remove(LivenessInfo * info1, set<unsigned> info2, LivenessInfo * result) {
         std::set<unsigned> infoSet = info1->getInfo();
         infoSet.erase(info2.begin(), info2.end());
         result->setInfo(infoSet);
@@ -118,7 +118,8 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
             for(Use &U:I->operands()) {
                 Value* V = U.get();
                 Instruction* defineInst = dyn_cast<Instruction>(V);
-                result.insert(instr2index(defineInst));
+                if(defineInst != nullptr)
+                    result.insert(instr2index(defineInst));
             }
             return result;
         }
@@ -131,12 +132,16 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
             for(Use &U:I->operands()) {
                 Value* V = U.get();
                 Instruction* defineInst = dyn_cast<Instruction>(V);
+                if(defineInst == nullptr) {
+                    continue;
+                }
                 if(defineInst->getParent() == outBB) {
                     unsigned index = instr2index(defineInst);
                     LivenessInfo::join(in, index, out);
                     break;
                 }
             }
+            return out;
         }
 
     public:
@@ -153,6 +158,9 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
                 LivenessInfo* in = edge2info(edge);
                 LivenessInfo::join(info, in, info);
             }
+
+            errs() << currentIndex << ": ";
+            errs() << (*I) << "\n";
             
             switch(getCategory(I)) {
                 case 1: { // First category: IR instructions that return a value (defines a variable) 
@@ -179,7 +187,7 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
                     }
                     LivenessInfo::remove(info, definedVars, info);
                     for(size_t i = 0; i < OutgoingEdges.size(); i++) {
-                        LivenessInfo* info_i = new LivenessInfo(info.getInfo());
+                        LivenessInfo* info_i = new LivenessInfo(info->getInfo());
                         for(unsigned index = currentIndex; index < firstNonPHI; index++) {
                             Instruction* PHI_inst = index2instr(index);
                             BasicBlock* outBB = index2instr(OutgoingEdges[i])->getParent();

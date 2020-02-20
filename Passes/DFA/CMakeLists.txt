@@ -1,4 +1,4 @@
-add_llvm_library( submission_pt2 MODULE
+add_llvm_library( submission_pt3 MODULE
   ReachingDefinitionAnalysis.cpp
   MayPointToAnalysis.cpp
   LivenessAnalysis.cpp
