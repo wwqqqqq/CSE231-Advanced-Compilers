@@ -77,46 +77,13 @@ class LivenessInfo : public Info {
      * The third parameter points to the result.
      */
     static LivenessInfo* join(LivenessInfo * info1, LivenessInfo * info2, LivenessInfo * result) { // union
-        // errs() << info1 << "\n";
-        // errs() << info2 << "\n";
         std::set<unsigned> infoSet1 = info1->getInfo();
-        // errs() << "info1 get Info\n";
         std::set<unsigned> infoSet2 = info2->getInfo();
-        // errs() << "info2 get info\n";
         infoSet1.insert(infoSet2.begin(), infoSet2.end());
-        // errs() << result << "\n";
         result->setInfo(infoSet1);
-        // errs() << "result set info\n";
         return result;
     }
 
-    // static LivenessInfo* join(LivenessInfo * info1, set<unsigned> info2, LivenessInfo * result) {
-    //     std::set<unsigned> infoSet1 = info1->getInfo();
-    //     infoSet1.insert(info2.begin(), info2.end());
-    //     result->setInfo(infoSet1);
-    //     return result;
-    // }
-
-    // static LivenessInfo* join(LivenessInfo * info1, unsigned info2, LivenessInfo * result) {
-    //     std::set<unsigned> infoSet1 = info1->getInfo();
-    //     infoSet1.insert(info2);
-    //     result->setInfo(infoSet1);
-    //     return result;
-    // }
-
-    // static LivenessInfo* remove(LivenessInfo * info1, unsigned info2, LivenessInfo * result) {
-    //     std::set<unsigned> infoSet = info1->getInfo();
-    //     infoSet.erase(info2);
-    //     result->setInfo(infoSet);
-    //     return result;
-    // }
-
-    // static LivenessInfo* remove(LivenessInfo * info1, set<unsigned> info2, LivenessInfo * result) {
-    //     std::set<unsigned> infoSet = info1->getInfo();
-    //     infoSet.erase(info2.begin(), info2.end());
-    //     result->setInfo(infoSet);
-    //     return result;
-    // }
 };
 
 class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <info, direction>
@@ -152,10 +119,6 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
             }
             return result;
         }
-
-        // unsigned definedVariable(Instruction* I) {
-        //     return instr2index(I);
-        // }
 
         LivenessInfo* getOutInfoPHI(Instruction* I, LivenessInfo* info, BasicBlock* outBB) {
             for(Use &U:I->operands()) {
@@ -194,9 +157,7 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
             switch(getCategory(I)) {
                 case 1: { // First category: IR instructions that return a value (defines a variable) 
                     info->join(usedVariables(I));
-                    // LivenessInfo::join(info, usedVariables(I), info);
                     info->remove(currentIndex);
-                    // LivenessInfo::remove(info, currentIndex, info);
                     for(size_t i = 0; i < OutgoingEdges.size(); i++) {
                         Infos.push_back(info);
                     }
@@ -204,7 +165,6 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
                     break;
                 case 2: { // Second categoryL IR instructions that do not return a value
                     info->join(usedVariables(I));
-                    // LivenessInfo::join(info, usedVariables(I), info);
                     for(size_t i = 0; i < OutgoingEdges.size(); i++) {
                         Infos.push_back(info);
                     }
@@ -220,8 +180,6 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
                         LivenessInfo* info_i = new LivenessInfo(info->getInfo());
                         for(unsigned index = currentIndex; index < firstNonPHI; index++) {
                             Instruction* PHI_inst = index2instr(index);
-                            // errs() << "PHI instruction: ";
-                            // errs() << (*PHI_inst) << "\n";
                             BasicBlock* outBB = index2instr(OutgoingEdges[i])->getParent();
                             getOutInfoPHI(PHI_inst, info_i, outBB);
                         }
@@ -231,7 +189,6 @@ class LivenessAnalysis : public DataFlowAnalysis<LivenessInfo, false>  {   // <i
                     break;
                 default: break;
             }
-            // errs() << "end of flow function\n";
         }
 };
 
