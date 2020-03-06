@@ -29,8 +29,9 @@ Programming assignment of CSE 231 at UCSD (Winter 2020) [[link](https://ucsd-pl.
 ### Pull the LLVM image (for CSE 231 Course Project only)
 ``` bash
 $ docker pull yalhessi/cse231_student:llvm9
-// Docker should automaticaly start downloading and extracting the provided LLVM image.
-// To verify the completion of the last step, run:
+(Docker should automaticaly start downloading and extracting the provided LLVM image.)
+
+(To verify the completion of the last step, run the following command)
 $ docker images
 ```
 ### Start a shell in the LLVM docker image
@@ -45,19 +46,28 @@ $ docker run --rm -it -v <Path to Output Directory in local machine>:/output -v 
 ```
 
 Note:
-1. The option --rm will automatically kill the docker image as soon as you exit it so it doesn't run in the background.
-2. The option -it will open an interactive session of the image.
-3. The -v options mount the specified folders to the mount points (path-on-host:mount-point-in-docker).
+1. The option `--rm` will automatically kill the docker image as soon as you exit it so it doesn't run in the background.
+2. The option `-it` will open an interactive session of the image.
+3. The `-v` options mount the specified folders to the mount points (path-on-host:mount-point-in-docker).
 
 Reference: [Docker run reference](https://docs.docker.com/storage/bind-mounts/), [Use bind mounts](https://docs.docker.com/storage/bind-mounts/)
 
 ## How to compile LLVM Pass
  - Start the provided docker image by running `sudo ./mount_and_launch.sh`
  - Your `src` folder should be mounted at `/LLVM_ROOT/llvm/lib/Transforms/CSE231_Project`
- - You only need to compile your new pass(es) so we'll move directly into the `CSE231_Project` build folder. To do that type `cd /LLVM_ROOT/build/lib/Transforms/CSE231_Project`
- - Everything is pre-configures. You only need to run `make`
- - If everything went well, you should be able to find your pass under `/LLVM_ROOT/build/lib/`
- - Done!
+
+``` bash
+$ cd /LLVM_ROOT/build
+$ cmake /LLVM_ROOT/llvm
+(... cmake ends without errors ...)
+$ cd /LLVM_ROOT/build/lib/Transforms/CSE231_Project
+$ make
+(Pass can now be found under /LLVM_ROOT/build/lib)
+```
+
+If everything went well you should be able to find your module (an LLVM module includes passes) under `/LLVM_ROOT/build/lib`.
+
+Reference: [Cmake vs make sample codes](https://stackoverflow.com/questions/10882030/cmake-vs-make-sample-codes), [CMake vs Make](https://prateekvjoshi.com/2014/02/01/cmake-vs-make/)
 
 ## How to Generate LLVM IR Code from Source Code
  - Start the provided docker image by running `sudo ./mount_and_launch.sh`
@@ -118,18 +128,26 @@ Reference: [stackoverflow](https://stackoverflow.com/questions/46513801/llvm-opt
  - Follow the steps in `HOW_TO_COMPILE_LLVM_PASS.txt`. DO NOT exit the running container.
  - The environment is pre-configured so you can run the pass from any directory in the filesystem. 
  - To run your pass: `opt -load LLVMTestPass.so -TestPass < /tests/HelloWorld/HelloWorld.ll > /dev/null`
- - Our pass sends output to the `errs()` device (standard error). We can redirect the output by appending `<file-path>` in the previous command.
+ - Our pass sends output to the `errs()` device (standard error). We can redirect the output by appending `2> <file-path>` in the previous command. *e.g.* `opt -load LLVMTestPass.so -TestPass < /tests/HelloWorld/HelloWorld.ll > /dev/null 2> /output/test_pass_output.txt`
  - Done!
+ 
+Note:
+1. `opt` is LLVM's command line tool for executing passes.
+2. `-load LLVMTestPass.so` causes `opt` to load the shared library that contains the TestPass. We don't need to specify the full path to the pass since the docker image's environment was appropriately configured to know where to search. The name of the module (`LLVMTestPass`) is defined in `CMakeLists.txt`.
+3. `-TestPass` tells `opt` the name of the pass we wish to run. The pass was bound to the `-TestPass` command line flag by the [`RegisterPass<TestPass>`](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/e5a31878d7bf0590dd7118e5432ecd183a37e713/Passes/testPass/TestPass.cpp#L21) declaration in [`TestPass.cpp`](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/Passes/testPass/TestPass.cpp).
+4. By default, the output of `opt` is a transformed program. Since the Hello pass doesn't perform any transformations, we just redirect the output to `/dev/null` to ignore it.
  
 ## Reference
 1. [LLVM](http://llvm.org/docs/) Documentations:
-  - [Writing An LLVM Pass](http://llvm.org/docs/WritingAnLLVMPass.html)
-  - [LLVM Programmer's Manual](http://llvm.org/docs/ProgrammersManual.html)
-  - [Helpful Hints for Common Operations](http://llvm.org/docs/ProgrammersManual.html)
-  - [LLVM::Instruction Class Reference](https://llvm.org/doxygen/classllvm_1_1Instruction.html) 
-  - [LLVM::BasicBlock Class Reference]( https://llvm.org/doxygen/classllvm_1_1BasicBlock.html)
-  - [LLVM::Function Class Reference](https://llvm.org/doxygen/classllvm_1_1Function.html)
-  - [LLVM::Pass Class Reference](https://llvm.org/doxygen/classllvm_1_1Pass.html)
-  - [LLVM::IRBuilder< T, Inserter > Class Template Reference](https://llvm.org/doxygen/classllvm_1_1IRBuilder.html)
-
+    - [Writing An LLVM Pass](http://llvm.org/docs/WritingAnLLVMPass.html)
+    - [LLVM Programmer's Manual](http://llvm.org/docs/ProgrammersManual.html)
+    - [Helpful Hints for Common Operations](http://llvm.org/docs/ProgrammersManual.html)
+    - [LLVM::Instruction Class Reference](https://llvm.org/doxygen/classllvm_1_1Instruction.html) 
+    - [LLVM::BasicBlock Class Reference]( https://llvm.org/doxygen/classllvm_1_1BasicBlock.html)
+    - [LLVM::Function Class Reference](https://llvm.org/doxygen/classllvm_1_1Function.html)
+    - [LLVM::Pass Class Reference](https://llvm.org/doxygen/classllvm_1_1Pass.html)
+    - [LLVM::IRBuilder< T, Inserter > Class Template Reference](https://llvm.org/doxygen/classllvm_1_1IRBuilder.html)
+2. How to Write CMakeLists.txt
+    - [CMake Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/index.html)
+    - [Learning CMake a Beginners' Guide](https://tuannguyen68.gitbooks.io/learning-cmake-a-beginner-s-guide/content/)
  
