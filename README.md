@@ -24,6 +24,18 @@ Programming assignment of CSE 231 at UCSD (Winter 2020) [[link](https://ucsd-pl.
 │   └── CMakeLists.txt
 ```
 
+## Table of Content
+* [Set Up the Environment](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#set-up-the-environment)
+  * [Install Docker](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#install-docker)
+  * [Pull the LLVM image](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#pull-the-llvm-image-for-cse-231-course-project-only)
+  * [Start a shell in the LLVM docker image](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#start-a-shell-in-the-llvm-docker-image)
+* [How to compile LLVM Pass](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-compile-llvm-pass)
+* [How to Generate LLVM IR Code from Source Code](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-generate-llvm-ir-code-from-source-code)
+  * [How to Write Test Cases that can Generate LLVM IR with PHI Instructions](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-write-test-cases-that-can-generate-llvm-ir-with-phi-instructions)
+* [How to Run LLVM Pass](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-run-llvm-pass)
+* [Reference](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#reference)
+
+
 ## Set Up the Environment
 ### Install [Docker](https://www.docker.com/get-started)
 ### Pull the LLVM image (for CSE 231 Course Project only)
