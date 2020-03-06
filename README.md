@@ -25,15 +25,15 @@ Programming assignment of CSE 231 at UCSD (Winter 2020) [[link](https://ucsd-pl.
 ```
 
 ## Table of Content
-* [Set Up the Environment](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#set-up-the-environment)
-  * [Install Docker](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#install-docker)
-  * [Pull the LLVM image](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#pull-the-llvm-image-for-cse-231-course-project-only)
-  * [Start a shell in the LLVM docker image](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#start-a-shell-in-the-llvm-docker-image)
-* [How to compile LLVM Pass](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-compile-llvm-pass)
-* [How to Generate LLVM IR Code from Source Code](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-generate-llvm-ir-code-from-source-code)
-  * [How to Write Test Cases that can Generate LLVM IR with PHI Instructions](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-write-test-cases-that-can-generate-llvm-ir-with-phi-instructions)
-* [How to Run LLVM Pass](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#how-to-run-llvm-pass)
-* [Reference](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/README.md#reference)
+* [Set Up the Environment](#set-up-the-environment)
+  * [Install Docker](#install-docker)
+  * [Pull the LLVM image](#pull-the-llvm-image-for-cse-231-course-project-only)
+  * [Start a shell in the LLVM docker image](#start-a-shell-in-the-llvm-docker-image)
+* [How to compile LLVM Pass](#how-to-compile-llvm-pass)
+* [How to Generate LLVM IR Code from Source Code](#how-to-generate-llvm-ir-code-from-source-code)
+  * [How to Write Test Cases that can Generate LLVM IR with PHI Instructions](#how-to-write-test-cases-that-can-generate-llvm-ir-with-phi-instructions)
+* [How to Run LLVM Pass](#how-to-run-llvm-pass)
+* [Reference](#reference)
 
 
 ## Set Up the Environment
@@ -146,7 +146,7 @@ Reference: [stackoverflow](https://stackoverflow.com/questions/46513801/llvm-opt
 Note:
 1. `opt` is LLVM's command line tool for executing passes.
 2. `-load LLVMTestPass.so` causes `opt` to load the shared library that contains the TestPass. We don't need to specify the full path to the pass since the docker image's environment was appropriately configured to know where to search. The name of the module (`LLVMTestPass`) is defined in `CMakeLists.txt`.
-3. `-TestPass` tells `opt` the name of the pass we wish to run. The pass was bound to the `-TestPass` command line flag by the [`RegisterPass<TestPass>`](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/e5a31878d7bf0590dd7118e5432ecd183a37e713/Passes/testPass/TestPass.cpp#L21) declaration in [`TestPass.cpp`](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/master/Passes/testPass/TestPass.cpp).
+3. `-TestPass` tells `opt` the name of the pass we wish to run. The pass was bound to the `-TestPass` command line flag by the [`RegisterPass<TestPass>`](https://github.com/wwqqqqq/CSE231-Advanced-Compilers/blob/e5a31878d7bf0590dd7118e5432ecd183a37e713/Passes/testPass/TestPass.cpp#L21) declaration in [`TestPass.cpp`](/Passes/testPass/TestPass.cpp).
 4. By default, the output of `opt` is a transformed program. Since the Hello pass doesn't perform any transformations, we just redirect the output to `/dev/null` to ignore it.
  
 ## Reference
